@@ -88,7 +88,7 @@ const elementHandler = {
         ? target.children[prop]
         : target.node && prop in target.node
           ? target.node[prop]
-          : Reflect.get(...arguments)
+          : Reflect.get(target, prop, receiver)
   }
 }
 
