@@ -12,8 +12,29 @@ class Element {
     Object.assign(this, {...defaults, ...obj})
   }
 
-  render() {
-    this.node = document.createElement(this.name)
+  async createElement() {
+    try {
+      let name = this.name.toLowerCase()
+      const element = document.createElement(name)
+
+      if (element instanceof HTMLElement) {
+        return element
+      }
+
+      const module = await import(`./elements/${name}.js`)
+
+      customElements.define(name, module.default)
+
+      const customElement = document.createElement(name)
+      return customElement
+    } catch (error) {
+      console.error('Error creating element:', error)
+      return null
+    }
+  }    
+
+  async render() {
+    this.node = await this.createElement(this.name)
     Object.assign(this.node, this.props)
 
     for (const [event, [listener, options]] of Object.entries(this.listeners)) {
@@ -43,9 +64,9 @@ class Element {
     })
   }
 
-  prepareNode() {
+  async prepareNode() {
     if (!this.node) {
-      this.render()
+      await this.render()
       for (const child of Object.values(this.children)) {
         child.appendTo(this.node)
       }
@@ -55,25 +76,25 @@ class Element {
     }
   }
 
-  toString() {
-    this.prepareNode()
+  async toString() {
+    await this.prepareNode()
     return this.node.outerHTML
   }
 
-  toNode() {
-    this.prepareNode()
+  async toNode() {
+    await this.prepareNode()
     return this.node
   }
 
-  appendTo(parent, name = '') {
+  async appendTo(parent, name = '') {
     if (parent instanceof Node) {
-      this.prepareNode()
+      await this.prepareNode()
       parent.appendChild(this.node);
     }
     if (parent instanceof Element) {
       parent.children = {...parent.children, [name]: this}
       if (parent.node) {
-        this.prepareNode()
+        await this.prepareNode()
         parent.node.appendChild(this.node)
       }
     }
