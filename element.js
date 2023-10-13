@@ -12,29 +12,19 @@ class Element {
     Object.assign(this, {...defaults, ...obj})
   }
 
-  async createElement() {
-    try {
+  createElement() {
       let name = this.name.toLowerCase()
-      const element = document.createElement(name)
-
-      if (element instanceof HTMLElement) {
-        return element
+      if (this.elementClass) {
+        if (!customElements.get(name)) {
+          customElements.define(name, this.elementClass)
+        }
       }
-
-      const module = await import(`./elements/${name}.js`)
-
-      customElements.define(name, module.default)
-
-      const customElement = document.createElement(name)
-      return customElement
-    } catch (error) {
-      console.error('Error creating element:', error)
-      return null
-    }
+      
+      return document.createElement(name)
   }    
 
-  async render() {
-    this.node = await this.createElement(this.name)
+  render() {
+    this.node = this.createElement()
     Object.assign(this.node, this.props)
 
     for (const [event, [listener, options]] of Object.entries(this.listeners)) {
@@ -64,9 +54,9 @@ class Element {
     })
   }
 
-  async prepareNode() {
+  prepareNode() {
     if (!this.node) {
-      await this.render()
+      this.render()
       for (const child of Object.values(this.children)) {
         child.appendTo(this.node)
       }
@@ -76,25 +66,25 @@ class Element {
     }
   }
 
-  async toString() {
-    await this.prepareNode()
+  toString() {
+    this.prepareNode()
     return this.node.outerHTML
   }
 
-  async toNode() {
-    await this.prepareNode()
+  toNode() {
+    this.prepareNode()
     return this.node
   }
 
-  async appendTo(parent, name = '') {
+  appendTo(parent, name = '') {
     if (parent instanceof Node) {
-      await this.prepareNode()
+      this.prepareNode()
       parent.appendChild(this.node);
     }
     if (parent instanceof Element) {
       parent.children = {...parent.children, [name]: this}
       if (parent.node) {
-        await this.prepareNode()
+        this.prepareNode()
         parent.node.appendChild(this.node)
       }
     }
@@ -107,9 +97,7 @@ const elementHandler = {
       ? target[prop]
       : prop in target.children
         ? target.children[prop]
-        : target.node && prop in target.node
-          ? target.node[prop]
-          : Reflect.get(target, prop, receiver)
+        : Reflect.get(target, prop, receiver)
   }
 }
 
