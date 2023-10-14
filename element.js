@@ -19,9 +19,9 @@ class Element {
           customElements.define(name, this.elementClass)
         }
       }
-      
+
       return document.createElement(name)
-  }    
+  }
 
   render() {
     this.node = this.createElement()
@@ -56,12 +56,15 @@ class Element {
 
   prepareNode() {
     if (!this.node) {
+      for (const pre of Object.values(this.preRender)) {
+        pre(this)
+      }
       this.render()
       for (const child of Object.values(this.children)) {
         child.appendTo(this.node)
       }
-      for (const p of Object.values(this.postRender)) {
-        p(this)
+      for (const post of Object.values(this.postRender)) {
+        post(this)
       }
     }
   }
