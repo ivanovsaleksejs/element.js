@@ -3,6 +3,7 @@ class Element {
     const defaults = {
       name: '',
       props: {},
+      data: {},
       children: {},
       listeners: {},
       preRender: {},
@@ -26,6 +27,7 @@ class Element {
   render() {
     this.node = this.createElement()
     Object.assign(this.node, this.props)
+    Object.entries(this.data).forEach(([n, d]) => this.node.dataset[n] = d)
 
     for (const [event, [listener, options]] of Object.entries(this.listeners)) {
       this.node.addEventListener(event, listener(this), options);
@@ -91,6 +93,7 @@ class Element {
         parent.node.appendChild(this.node)
       }
     }
+    return this
   }
 }
 
