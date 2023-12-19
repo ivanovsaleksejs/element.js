@@ -29,7 +29,7 @@ class Element {
     Object.assign(this.node, this.props)
     Object.entries(this.data).forEach(([n, d]) => this.node.dataset[n] = d)
 
-    for (const [event, listener] of Object.entries(this.listeners)) {
+    for (let [event, listener] of Object.entries(this.listeners)) {
       let options = {}
       if (listener instanceof Array) {
         [listener, options] = listener
@@ -37,7 +37,7 @@ class Element {
       this.node.addEventListener(event, listener.bind(this), options)
     }
 
-    for (const [name, child] of Object.entries(this.children)) {
+    for (let [name, child] of Object.entries(this.children)) {
       if (!(child instanceof Element)) {
         this.children[name] = element({ ...{ parent: this }, ...child})
       }
@@ -62,14 +62,14 @@ class Element {
 
   prepareNode() {
     if (!this.node) {
-      for (const pre of Object.values(this.preRender)) {
+      for (let pre of Object.values(this.preRender)) {
         pre(this)
       }
       this.render()
-      for (const child of Object.values(this.children)) {
+      for (let child of Object.values(this.children)) {
         child.appendTo(this.node)
       }
-      for (const post of Object.values(this.postRender)) {
+      for (let post of Object.values(this.postRender)) {
         post(this)
       }
     }
