@@ -94,7 +94,7 @@ class Element {
   async appendTo(parent, name = '') {
     if (parent instanceof Node) {
       await this.prepareNode()
-      parent.appendChild(this.node);
+      parent.appendChild(this.node)
     }
     if (parent instanceof Element) {
       parent.children = {...parent.children, [name]: this}
