@@ -1,0 +1,19 @@
+{
+  "name": "element.js",
+  "version": "1.0.0",
+  "description": "Mini framework for manipulating DOM",
+  "main": "element.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ivanovsaleksejs/element.js.git"
+  },
+  "author": "Aleksejs Ivanovs",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ivanovsaleksejs/element.js/issues"
+  },
+  "homepage": "https://github.com/ivanovsaleksejs/element.js#readme"
+}
