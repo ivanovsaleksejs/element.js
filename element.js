@@ -14,14 +14,14 @@ class Element {
   }
 
   createElement() {
-      let name = this.name.toLowerCase()
-      if (this.elementClass) {
-        if (!customElements.get(name)) {
-          customElements.define(name, this.elementClass)
-        }
+    let name = this.name.toLowerCase()
+    if (this.elementClass) {
+      if (!customElements.get(name)) {
+        customElements.define(name, this.elementClass)
       }
+    }
 
-      return document.createElement(name)
+    return document.createElement(name)
   }
 
   render() {
@@ -29,8 +29,12 @@ class Element {
     Object.assign(this.node, this.props)
     Object.entries(this.data).forEach(([n, d]) => this.node.dataset[n] = d)
 
-    for (const [event, [listener, options]] of Object.entries(this.listeners)) {
-      this.node.addEventListener(event, listener(this), options);
+    for (const [event, listener] of Object.entries(this.listeners)) {
+      let options = {}
+      if (listener instanceof Array) {
+        [listener, options] = listener
+      }
+      this.node.addEventListener(event, listener.bind(this), options)
     }
 
     for (const [name, child] of Object.entries(this.children)) {
@@ -94,6 +98,18 @@ class Element {
       }
     }
     return this
+  }
+
+  lookup(name, ret = []) {
+    for (let [n, prop] of Object.entries(this.children)) {
+      if (n == name) {
+        ret.push(prop)
+      }
+      else {
+        ret = this.children[n].lookup(name, ret)
+      }
+    }
+    return ret
   }
 }
 
