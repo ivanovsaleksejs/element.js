@@ -13,9 +13,15 @@ class Element {
     Object.assign(this, {...defaults, ...obj})
   }
 
-  createElement() {
+  async createElement() {
     let name = this.name.toLowerCase()
     if (this.elementClass) {
+      if (typeof this.elementClass == 'string') {
+        this.elementClass = (await import(`${this.elementClass}.js`)).default
+      }
+      if (name.indexOf('-') == -1) {
+        name += '-element'
+      }
       if (!customElements.get(name)) {
         customElements.define(name, this.elementClass)
       }
@@ -24,8 +30,8 @@ class Element {
     return document.createElement(name)
   }
 
-  render() {
-    this.node = this.createElement()
+  async render() {
+    this.node = await this.createElement()
     Object.assign(this.node, this.props)
     Object.entries(this.data).forEach(([n, d]) => this.node.dataset[n] = d)
 
@@ -60,12 +66,12 @@ class Element {
     })
   }
 
-  prepareNode() {
+  async prepareNode() {
     if (!this.node) {
       for (let pre of Object.values(this.preRender)) {
         pre(this)
       }
-      this.render()
+      await this.render()
       for (let child of Object.values(this.children)) {
         child.appendTo(this.node)
       }
@@ -75,25 +81,25 @@ class Element {
     }
   }
 
-  toString() {
-    this.prepareNode()
+  async toString() {
+    await this.prepareNode()
     return this.node.outerHTML
   }
 
-  toNode() {
-    this.prepareNode()
+  async toNode() {
+    await this.prepareNode()
     return this.node
   }
 
-  appendTo(parent, name = '') {
+  async appendTo(parent, name = '') {
     if (parent instanceof Node) {
-      this.prepareNode()
+      await this.prepareNode()
       parent.appendChild(this.node);
     }
     if (parent instanceof Element) {
       parent.children = {...parent.children, [name]: this}
       if (parent.node) {
-        this.prepareNode()
+        await this.prepareNode()
         parent.node.appendChild(this.node)
       }
     }
