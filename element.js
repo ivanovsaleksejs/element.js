@@ -1,5 +1,6 @@
 class Element {
-  constructor(obj) {
+  constructor(obj) 
+  {
     const defaults = {
       name: '',
       props: {},
@@ -13,7 +14,8 @@ class Element {
     Object.assign(this, {...defaults, ...obj})
   }
 
-  async createElement() {
+  async createElement()
+  {
     let name = this.name.toLowerCase()
     if (this.elementClass) {
       if (name.indexOf('-') == -1) {
@@ -31,7 +33,8 @@ class Element {
     return document.createElement(name)
   }
 
-  async render() {
+  async render()
+  {
     this.node = await this.createElement()
     Object.assign(this.node, this.props)
     Object.entries(this.data).forEach(([n, d]) => this.node.dataset[n] = d)
@@ -67,7 +70,8 @@ class Element {
     })
   }
 
-  async prepareNode() {
+  async prepareNode() 
+  {
     if (!this.node) {
       for (let pre of Object.values(this.preRender)) {
         pre(this)
@@ -82,17 +86,20 @@ class Element {
     }
   }
 
-  async toString() {
+  async toString()
+  {
     await this.prepareNode()
     return this.node.outerHTML
   }
 
-  async toNode() {
+  async toNode()
+  {
     await this.prepareNode()
     return this.node
   }
 
-  async appendTo(parent, name = '') {
+  async appendTo(parent, name = '')
+  {
     if (parent instanceof Node) {
       await this.prepareNode()
       parent.appendChild(this.node)
@@ -107,7 +114,8 @@ class Element {
     return this
   }
 
-  lookup(name, ret = []) {
+  lookup(name, ret = [])
+  {
     for (let [n, prop] of Object.entries(this.children)) {
       if (n == name) {
         ret.push(prop)
@@ -130,7 +138,8 @@ const elementHandler = {
   }
 }
 
-const element = data => {
+const element = data => 
+{
   let el = new Element(data)
   return new Proxy(el, elementHandler)
 }
