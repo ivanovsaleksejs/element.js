@@ -16,13 +16,14 @@ class Element {
   async createElement() {
     let name = this.name.toLowerCase()
     if (this.elementClass) {
-      if (typeof this.elementClass == 'string') {
-        this.elementClass = (await import(`${this.elementClass}.js`)).default
-      }
       if (name.indexOf('-') == -1) {
         name += '-element'
       }
       if (!customElements.get(name)) {
+        if (typeof this.elementClass == 'string') {
+          const importedClass = (await import(`${this.elementClass}.js`)).default
+          this.elementClass = (importedClass => class extends importedClass{})(importedClass)
+        }
         customElements.define(name, this.elementClass)
       }
     }
