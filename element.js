@@ -37,6 +37,9 @@ class Element {
   {
     this.node = await this.createElement()
     Object.assign(this.node, this.props)
+    if (this.props.style) {
+      Object.assign(this.node.style, this.props.style)
+    }
     Object.entries(this.data).forEach(([n, d]) => this.node.dataset[n] = d)
 
     for (let [event, listener] of Object.entries(this.listeners)) {
