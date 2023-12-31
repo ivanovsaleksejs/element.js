@@ -80,8 +80,8 @@ class Element {
         pre(this)
       }
       await this.render()
-      for (let child of Object.values(this.children)) {
-        child.appendTo(this.node)
+      for (let [name, child] of Object.entries(this.children)) {
+        child.appendTo(this.node, name)
       }
       for (let post of Object.values(this.postRender)) {
         post(this)
@@ -120,7 +120,7 @@ class Element {
   lookup(name, ret = [])
   {
     for (let [n, prop] of Object.entries(this.children)) {
-      if (n == name) {
+      if ((s => typeof s == 'string' ? (new RegExp(`^${s.replace('*', '.*')}$`)) : s)(name).test(n)) {
         ret.push(prop)
       }
       else {
