@@ -52,6 +52,7 @@ class Element {
 
     for (let [name, child] of Object.entries(this.children)) {
       if (!(child instanceof Element)) {
+        child.name = child.name ? child.name : name
         this.children[name] = element({ ...{ parent: this }, ...child})
       }
     }
@@ -81,6 +82,7 @@ class Element {
       }
       await this.render()
       for (let [name, child] of Object.entries(this.children)) {
+        child.name = child.name ? child.name : name
         child.appendTo(this.node, name)
       }
       for (let post of Object.values(this.postRender)) {
@@ -103,6 +105,7 @@ class Element {
 
   async appendTo(parent, name = '')
   {
+    this.name = this.name ? this.name : name
     if (parent instanceof Node) {
       await this.prepareNode()
       parent.appendChild(this.node)
