@@ -72,6 +72,7 @@ class Element {
         return true
       }
     })
+    this.node.dispatchEvent((new CustomEvent('rendered')))
   }
 
   async prepareNode() 
