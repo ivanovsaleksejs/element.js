@@ -36,6 +36,7 @@ class Element {
   async render()
   {
     this.node = await this.createElement()
+
     Object.assign(this.node, this.props)
     if (this.props.style) {
       Object.assign(this.node.style, this.props.style)
