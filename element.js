@@ -1,5 +1,5 @@
 class Element {
-  constructor(obj) 
+  constructor(obj)
   {
     const defaults = {
       name: '',
@@ -9,40 +9,41 @@ class Element {
       listeners: {},
       preRender: {},
       postRender: {},
-      proxies: {}
     }
+
     Object.assign(this, {...defaults, ...obj})
+    Object.entries(obj.bindings ?? {}).forEach(([prop, { get, set }]) => {
+      Object.defineProperty(this, prop, {
+        get: get,
+        set: set,
+      })
+    })
   }
 
-  async createElement()
+  lookup(name, ret = [])
   {
-    let name = this.name.toLowerCase()
-    if (this.elementClass) {
-      if (name.indexOf('-') == -1) {
-        name += '-element'
+    for (let [n, prop] of Object.entries(this.children)) {
+      if ((s => typeof s == 'string' ? (new RegExp(`^${s.replace('*', '.*')}$`)) : s)(name).test(n)) {
+        ret.push(prop)
       }
-      if (!customElements.get(name)) {
-        if (typeof this.elementClass == 'string') {
-          const importedClass = (await import(`${this.elementClass}.js`)).default
-          this.elementClass = (importedClass => class extends importedClass{})(importedClass)
-        }
-        customElements.define(name, this.elementClass)
+      else {
+        ret = this.children[n].lookup(name, ret)
       }
     }
-
-    return document.createElement(name)
+    return ret
   }
 
-  async render()
+  assignProps()
   {
-    this.node = await this.createElement()
-
     Object.assign(this.node, this.props)
     if (this.props.style) {
       Object.assign(this.node.style, this.props.style)
     }
     Object.entries(this.data).forEach(([n, d]) => this.node.dataset[n] = d)
+  }
 
+  attachListeners()
+  {
     for (let [event, listener] of Object.entries(this.listeners)) {
       let options = {}
       if (listener instanceof Array) {
@@ -50,45 +51,14 @@ class Element {
       }
       this.node.addEventListener(event, listener.bind(this), options)
     }
+  }
 
+  prepareChildren()
+  {
     for (let [name, child] of Object.entries(this.children)) {
       if (!(child instanceof Element)) {
         child.name = child.name ? child.name : name
         this.children[name] = element({ ...{ parent: this }, ...child})
-      }
-    }
-
-    this.proxy = new Proxy(this, {
-      get(target, property) {
-        if (target.proxies[property].get) {
-          target.proxies[property].get(target, property)
-        }
-        return target[property]
-      },
-      set(target, property, value) {
-        target[property] = value
-        if (target.proxies[property].set) {
-          target.proxies[property].set(target, property, value)
-        }
-        return true
-      }
-    })
-    this.node.dispatchEvent((new CustomEvent('rendered')))
-  }
-
-  async prepareNode() 
-  {
-    if (!this.node) {
-      for (let pre of Object.values(this.preRender)) {
-        pre(this)
-      }
-      await this.render()
-      for (let [name, child] of Object.entries(this.children)) {
-        child.name = child.name ? child.name : name
-        child.appendTo(this.node, name)
-      }
-      for (let post of Object.values(this.postRender)) {
-        post(this)
       }
     }
   }
@@ -103,6 +73,59 @@ class Element {
   {
     await this.prepareNode()
     return this.node
+  }
+
+  async createElement()
+  {
+    let name = this.name.toLowerCase()
+    if (this.elementClass) {
+      name += name.indexOf('-') == -1 ? '-element' : ''
+      if (!customElements.get(name)) {
+        if (typeof this.elementClass == 'string') {
+          const importedClass = (await import(`${this.elementClass}.js`)).default
+          this.elementClass = (importedClass => class extends importedClass{})(importedClass)
+        }
+        customElements.define(name, this.elementClass)
+      }
+    }
+
+    return document.createElement(name)
+  }
+
+  async render(rerender = false)
+  {
+    if (rerender && this.node) {
+      while (this.node.firstChild) {
+        this.node.removeChild(this.node.firstChild);
+      }
+    }
+    else {
+      this.node = await this.createElement()
+    }
+    this.node.component = this
+
+    this.assignProps()
+    this.attachListeners()
+    this.prepareChildren()
+
+    this.node.dispatchEvent((new CustomEvent(rerender ? 'rerendered' : 'rendered')))
+  }
+
+  async prepareNode(rerender = false)
+  {
+    if (!this.node || rerender) {
+      for (let pre of Object.values(this.preRender)) {
+        pre(this)
+      }
+      await this.render(rerender)
+      for (let [name, child] of Object.entries(this.children)) {
+        child.name = child.name ? child.name : name
+        child.appendTo(this.node, name)
+      }
+      for (let post of Object.values(this.postRender)) {
+        post(this)
+      }
+    }
   }
 
   async appendTo(parent, name = '')
@@ -121,19 +144,6 @@ class Element {
     }
     return this
   }
-
-  lookup(name, ret = [])
-  {
-    for (let [n, prop] of Object.entries(this.children)) {
-      if ((s => typeof s == 'string' ? (new RegExp(`^${s.replace('*', '.*')}$`)) : s)(name).test(n)) {
-        ret.push(prop)
-      }
-      else {
-        ret = this.children[n].lookup(name, ret)
-      }
-    }
-    return ret
-  }
 }
 
 const elementHandler = {
@@ -146,7 +156,7 @@ const elementHandler = {
   }
 }
 
-const element = data => 
+const element = data =>
 {
   let el = new Element(data)
   return new Proxy(el, elementHandler)
