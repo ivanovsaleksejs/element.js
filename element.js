@@ -101,11 +101,11 @@ class Element {
     }
     else {
       this.node = await this.createElement()
+      this.assignProps()
+      this.attachListeners()
+      this.node.component = this
     }
-    this.node.component = this
 
-    this.assignProps()
-    this.attachListeners()
     this.prepareChildren()
 
     this.node.dispatchEvent((new CustomEvent(rerender ? 'rerendered' : 'rendered')))

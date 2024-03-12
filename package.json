@@ -1,7 +1,7 @@
 {
   "name": "element.js",
-  "version": "1.0.0",
-  "description": "Mini framework for manipulating DOM",
+  "version": "0.1",
+  "description": "Mini library for manipulating DOM",
   "main": "element.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
