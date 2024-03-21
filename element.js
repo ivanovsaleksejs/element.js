@@ -1,8 +1,8 @@
-class Element {
+class Element
+{
   constructor(obj)
   {
     const defaults = {
-      name: '',
       props: {},
       data: {},
       children: {},
@@ -11,13 +11,8 @@ class Element {
       postRender: {},
     }
 
-    Object.assign(this, {...defaults, ...obj})
-    Object.entries(obj.bindings ?? {}).forEach(([prop, { get, set }]) => {
-      Object.defineProperty(this, prop, {
-        get: get,
-        set: set,
-      })
-    })
+    Object.assign(this, {...defaults, ...obj, ...this})
+
   }
 
   lookup(name, ret = [])
@@ -53,11 +48,21 @@ class Element {
     }
   }
 
+  bindProps()
+  {
+    Object.entries(this.bindings ?? {}).forEach(([prop, { get, set }]) => {
+      Object.defineProperty(this, prop, {
+        get: get,
+        set: set,
+      })
+    })
+  }
+
   prepareChildren()
   {
     for (let [name, child] of Object.entries(this.children)) {
       if (!(child instanceof Element)) {
-        child.name = child.name ? child.name : name
+        child.name = child.name ? child.name : (isNaN(name) ? name : this.constructor.name)
         this.children[name] = element({ ...{ parent: this }, ...child})
       }
     }
@@ -88,7 +93,6 @@ class Element {
         customElements.define(name, this.elementClass)
       }
     }
-
     return document.createElement(name)
   }
 
@@ -102,6 +106,7 @@ class Element {
     else {
       this.node = await this.createElement()
       this.assignProps()
+      this.bindProps()
       this.attachListeners()
       this.node.component = this
     }
@@ -119,7 +124,7 @@ class Element {
       }
       await this.render(rerender)
       for (let [name, child] of Object.entries(this.children)) {
-        child.name = child.name ? child.name : name
+        child.name = child.name ? child.name : (isNaN(name) ? name : child.constructor.name)
         child.appendTo(this.node, name)
       }
       for (let post of Object.values(this.postRender)) {
@@ -130,7 +135,7 @@ class Element {
 
   async appendTo(parent, name = '')
   {
-    this.name = this.name ? this.name : name
+    this.name = this.name ? this.name : (isNaN(name) ? name : this.constructor.name)
     if (parent instanceof Node) {
       await this.prepareNode()
       parent.appendChild(this.node)
@@ -158,8 +163,8 @@ const elementHandler = {
 
 const element = data =>
 {
-  let el = new Element(data)
+  let el = data instanceof Element ? data : new Element(data)
   return new Proxy(el, elementHandler)
 }
 
-export default element
+export { Element, element }
