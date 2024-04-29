@@ -13,12 +13,22 @@ class Element
 
     Object.assign(this, {...defaults, ...obj, ...this})
 
+    return new Proxy(this, {
+      get: (obj, key, proxy) =>
+        key in obj
+          ? obj[key]
+          : key in obj.children
+            ? obj.children[key]
+            : Reflect.get(obj, key, proxy)
+      }
+    )
   }
 
   lookup(name, ret = [])
   {
+    const pattern = typeof s == 'string' ? (new RegExp(`^${s.replace('*', '.*')}$`)) : s
     for (let [n, prop] of Object.entries(this.children)) {
-      if ((s => typeof s == 'string' ? (new RegExp(`^${s.replace('*', '.*')}$`)) : s)(name).test(n)) {
+      if (pattern.test(n)) {
         ret.push(prop)
       }
       else {
@@ -61,8 +71,8 @@ class Element
   prepareChildren()
   {
     for (let [name, child] of Object.entries(this.children)) {
+      child.name = child.name ? child.name : (isNaN(name) ? name : child.constructor.name)
       if (!(child instanceof Element)) {
-        child.name = child.name ? child.name : (isNaN(name) ? name : this.constructor.name)
         this.children[name] = element({ ...{ parent: this }, ...child})
       }
     }
@@ -124,7 +134,6 @@ class Element
       }
       await this.render(rerender)
       for (let [name, child] of Object.entries(this.children)) {
-        child.name = child.name ? child.name : (isNaN(name) ? name : child.constructor.name)
         child.appendTo(this.node, name)
       }
       for (let post of Object.values(this.postRender)) {
@@ -151,20 +160,6 @@ class Element
   }
 }
 
-const elementHandler = {
-  get(target, prop, receiver) {
-    return prop in target
-      ? target[prop]
-      : prop in target.children
-        ? target.children[prop]
-        : Reflect.get(target, prop, receiver)
-  }
-}
-
-const element = data =>
-{
-  let el = data instanceof Element ? data : new Element(data)
-  return new Proxy(el, elementHandler)
-}
+const element = data => new Element(data)
 
 export { Element, element }
