@@ -73,7 +73,7 @@ class Element
     for (let [name, child] of Object.entries(this.children)) {
       child.name = child.name ? child.name : (isNaN(name) ? name : child.constructor.name)
       if (!(child instanceof Element)) {
-        this.children[name] = element({ ...{ parent: this }, ...child})
+        this.children[name] = new Element({ ...{ parent: this }, ...child})
       }
     }
   }
@@ -160,6 +160,4 @@ class Element
   }
 }
 
-const element = data => new Element(data)
-
-export { Element, element }
+export default Element
