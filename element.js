@@ -26,7 +26,7 @@ class Element
 
   lookup(name, ret = [])
   {
-    const pattern = typeof s == 'string' ? (new RegExp(`^${s.replace('*', '.*')}$`)) : s
+    const pattern = typeof name == 'string' ? (new RegExp(`^${name.replace('*', '.*')}$`)) : name
     for (let [n, prop] of Object.entries(this.children)) {
       if (pattern.test(n)) {
         ret.push(prop)
