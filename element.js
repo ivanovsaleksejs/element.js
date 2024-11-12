@@ -28,7 +28,7 @@ class Element
   {
     const pattern = typeof name == 'string' ? (new RegExp(`^${name.replace('*', '.*')}$`)) : name
     for (let [n, prop] of Object.entries(this.children)) {
-      if (pattern.test(n)) {
+      if (pattern.test(n) || (prop.name && pattern.test(prop.name))) {
         ret.push(prop)
       }
       else {
