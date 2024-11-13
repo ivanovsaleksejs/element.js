@@ -100,7 +100,7 @@ class Element
           const importedClass = (await import(`${this.elementClass}.js`)).default
           this.elementClass = (importedClass => class extends importedClass{})(importedClass)
         }
-        customElements.define(name, this.elementClass)
+        customElements.define(name, this.elementClass, this.elementProps ?? {})
       }
     }
     return document.createElement(name)
