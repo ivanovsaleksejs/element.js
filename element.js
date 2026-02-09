@@ -2,6 +2,13 @@ class Element
 {
   constructor(obj)
   {
+    if (obj instanceof HTMLElement) {
+      obj = {
+        node: obj,
+        children: [...obj.children].map(e => new Element(e))
+      }
+    }
+
     const defaults = {
       props: {},
       data: {},
