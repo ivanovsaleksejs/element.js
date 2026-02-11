@@ -2,6 +2,18 @@ class Element
 {
   constructor(obj)
   {
+    if (typeof obj === 'string') {
+      let node = null
+      try {
+        obj = document.querySelector(obj)
+      }
+      catch (e) {
+        let t = document.createElement("template")
+        t.innerHTML = obj
+        obj = [...t.content.children][0]
+      }
+    }
+
     if (obj instanceof HTMLElement) {
       obj = {
         node: obj,
