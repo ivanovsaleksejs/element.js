@@ -129,7 +129,7 @@ class Element
   {
     if (rerender && this.node) {
       while (this.node.firstChild) {
-        this.node.removeChild(this.node.firstChild);
+        await this.node.removeChild(this.node.firstChild)
       }
     }
     else {
@@ -153,7 +153,7 @@ class Element
       }
       await this.render(rerender)
       for (let [name, child] of Object.entries(this.children)) {
-        child.appendTo(this.node, name)
+        await child.appendTo(this.node, name)
       }
       for (let post of Object.values(this.postRender)) {
         post(this)
