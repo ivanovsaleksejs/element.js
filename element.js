@@ -12,6 +12,7 @@ class Element
         t.innerHTML = obj
         obj = [...t.content.children][0]
       }
+      this.reassign = true
     }
 
     if (obj instanceof HTMLElement) {
@@ -136,7 +137,9 @@ class Element
       }
     }
     else {
-      this.node = await this.createElement()
+      if (!this.node) {
+        this.node = await this.createElement()
+      }
       this.assignProps()
       this.bindProps()
       this.attachListeners()
@@ -150,7 +153,7 @@ class Element
 
   async prepareNode(rerender = false)
   {
-    if (!this.node || rerender) {
+    if (!this.node || rerender || this.reassign) {
       for (let pre of Object.values(this.preRender)) {
         pre(this)
       }
