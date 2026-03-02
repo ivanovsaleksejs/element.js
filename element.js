@@ -33,8 +33,6 @@ class Element
       ...extend
     }
 
-    defaults = {...defaults, ...extend}
-
     Object.assign(this, {...defaults, ...obj, ...this})
 
     return new Proxy(this, {
