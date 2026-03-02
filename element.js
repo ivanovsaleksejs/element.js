@@ -1,6 +1,6 @@
 class Element
 {
-  constructor(obj)
+  constructor(obj, extend = {})
   {
     if (typeof obj === 'string') {
       let node = null
@@ -29,6 +29,8 @@ class Element
       preRender: {},
       postRender: {},
     }
+
+    defaults = {...defaults, ...extend}
 
     Object.assign(this, {...defaults, ...obj, ...this})
 
