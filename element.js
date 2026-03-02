@@ -22,12 +22,15 @@ class Element
     }
 
     const defaults = {
-      props: {},
-      data: {},
-      children: {},
-      listeners: {},
-      preRender: {},
-      postRender: {},
+      ...{
+        props: {},
+        data: {},
+        children: {},
+        listeners: {},
+        preRender: {},
+        postRender: {},
+      },
+      ...extend
     }
 
     defaults = {...defaults, ...extend}
