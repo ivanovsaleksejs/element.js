@@ -63,13 +63,20 @@ class Element
 
   assignProps()
   {
-    Object.assign(this.node, this.props)
+    const props = this.props
 
-    Object.entries(this.props).forEach(([key, value]) => {
-      if (this.node[key] !== value && this.node.getAttribute(key) !== value) {
+    Object.entries(props).forEach(([key, value]) => {
+      if (typeof this.node[key] === 'undefined') {
         this.node.setAttribute(key, value)
+        delete props[key]
+      }
+      if (typeof value == 'object') {
+        Object.assign(this.node[key], value)
+        delete props[key]
       }
     })
+
+    Object.assign(this.node, props)
 
     Object.entries(this.data).forEach(([n, d]) => this.node.dataset[n] = d)
   }
