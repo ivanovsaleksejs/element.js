@@ -64,9 +64,13 @@ class Element
   assignProps()
   {
     Object.assign(this.node, this.props)
-    if (this.props.style) {
-      Object.assign(this.node.style, this.props.style)
-    }
+
+    Object.entries(this.props).forEach(([key, value]) => {
+      if (this.node[key] !== value && this.node.getAttribute(key) !== value) {
+        this.node.setAttribute(key, value)
+      }
+    })
+
     Object.entries(this.data).forEach(([n, d]) => this.node.dataset[n] = d)
   }
 
