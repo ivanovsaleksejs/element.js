@@ -1,5 +1,18 @@
 class Element
 {
+  static reserved = new Set(['name', 'node', 'props', 'data', 'children', 'listeners', 'bindings', 'preRender', 'postRender', 'elementClass', 'elementProps', 'parent', 'reassign'])
+
+  getChildren()
+  {
+    const own = {}
+    for (const key of Object.keys(this)) {
+      if (!Element.reserved.has(key) && typeof this[key] !== 'function' && this[key] instanceof Element) {
+        own[key] = this[key]
+      }
+    }
+    return { ...this.children, ...own }
+  }
+
   constructor(obj, extend = {})
   {
     if (typeof obj === 'string') {
@@ -35,27 +48,17 @@ class Element
     }
 
     Object.assign(this, {...defaults, ...obj, ...this})
-
-    return new Proxy(this, {
-      get: (obj, key, proxy) =>
-        key in obj
-          ? obj[key]
-          : key in obj.children
-            ? obj.children[key]
-            : Reflect.get(obj, key, proxy)
-      }
-    )
   }
 
   lookup(name, ret = [])
   {
     const pattern = typeof name == 'string' ? (new RegExp(`^${name.replace('*', '.*')}$`)) : name
-    for (let [n, prop] of Object.entries(this.children)) {
+    for (let [n, prop] of Object.entries(this.getChildren())) {
       if (pattern.test(n) || (prop.name && pattern.test(prop.name))) {
         ret.push(prop)
       }
       else {
-        ret = this.children[n].lookup(name, ret)
+        ret = prop.lookup(name, ret)
       }
     }
     return ret
@@ -104,10 +107,15 @@ class Element
 
   prepareChildren()
   {
-    for (let [name, child] of Object.entries(this.children)) {
+    for (let [name, child] of Object.entries(this.getChildren())) {
       child.name = child.name ? child.name : (isNaN(name) ? name : child.constructor.name)
       if (!(child instanceof Element)) {
-        this.children[name] = new Element({ ...{ parent: this }, ...child})
+        const wrapped = new Element({ ...{ parent: this }, ...child })
+        if (name in this.children) {
+          this.children[name] = wrapped
+        } else {
+          this[name] = wrapped
+        }
       }
     }
   }
@@ -169,7 +177,7 @@ class Element
         pre(this)
       }
       await this.render(rerender)
-      for (let [name, child] of Object.entries(this.children)) {
+      for (let [name, child] of Object.entries(this.getChildren())) {
         await child.appendTo(this.node, name)
       }
       for (let post of Object.values(this.postRender)) {
@@ -186,7 +194,11 @@ class Element
       parent.appendChild(this.node)
     }
     if (parent instanceof Element) {
-      parent.children = {...parent.children, [name]: this}
+      if (!isNaN(name) || Element.reserved.has(name)) {
+        parent.children = {...parent.children, [name]: this}
+      } else {
+        parent[name] = this
+      }
       if (parent.node) {
         await this.prepareNode()
         parent.node.appendChild(this.node)
